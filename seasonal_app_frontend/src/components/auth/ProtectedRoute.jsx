@@ -35,37 +35,54 @@ const LoadingSpinner = styled.div`
 const ProtectedRoute = ({ children }) => {
   const dispatch = useDispatch();
   const location = useLocation();
-  const { isAuthenticated, user } = useSelector(state => state.auth);
+  const authState = useSelector(state => state.auth);
+  const { isAuthenticated, user } = authState;
   const [isChecking, setIsChecking] = useState(true);
 
+  console.log('🔐 ProtectedRoute - RENDER');
+  console.log('🔐 ProtectedRoute - Full auth state:', authState);
+  console.log('🔐 ProtectedRoute - isAuthenticated:', isAuthenticated);
+  console.log('🔐 ProtectedRoute - user:', user);
+  console.log('🔐 ProtectedRoute - isChecking:', isChecking);
+
   useEffect(() => {
+    console.log('🔐 ProtectedRoute - useEffect running');
     const checkAuth = async () => {
       const token = localStorage.getItem('access_token');
+      console.log('🔐 ProtectedRoute - access_token:', token ? 'exists' : 'null');
       
       if (!token) {
+        console.log('🔐 ProtectedRoute - No token found');
         setIsChecking(false);
         return;
       }
 
       // If we have a token but no user, try to fetch user profile
       if (!user) {
+        console.log('🔐 ProtectedRoute - Token exists but no user, fetching profile...');
         try {
           const response = await authService.getProfile();
+          console.log('🔐 ProtectedRoute - Profile fetched:', response.data);
           dispatch(setUser(response.data));
         } catch (error) {
+          console.error('🔐 ProtectedRoute - Error fetching profile:', error);
           // Token is invalid, clear it
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
         }
+      } else {
+        console.log('🔐 ProtectedRoute - User already exists:', user);
       }
       
       setIsChecking(false);
+      console.log('🔐 ProtectedRoute - Auth check complete');
     };
 
     checkAuth();
   }, [dispatch, user]);
 
   if (isChecking) {
+    console.log('🔐 ProtectedRoute - Still checking auth, showing spinner');
     return (
       <LoadingContainer>
         <LoadingSpinner />
@@ -74,10 +91,12 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
+    console.log('🔐 ProtectedRoute - Not authenticated, redirecting to login');
     // Redirect to login with return url
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  console.log('🔐 ProtectedRoute - Authenticated, rendering children');
   return children;
 };
 

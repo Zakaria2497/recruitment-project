@@ -71,6 +71,11 @@ const NavigationButtons = styled.div`
 const EducationForm = () => {
   const dispatch = useDispatch();
   const { education, courses, loading } = useSelector(state => state.profile);
+  
+  // Ensure courses is an array
+  const coursesList = Array.isArray(courses) ? courses : 
+                     courses?.results ? courses.results : [];
+  
   const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm();
   const [showCourseForm, setShowCourseForm] = useState(false);
   const [courseFormData, setCourseFormData] = useState({
@@ -91,18 +96,21 @@ const EducationForm = () => {
   }, [education, setValue]);
 
   const onSubmit = async (data) => {
-    const formData = new FormData();
-    Object.keys(data).forEach(key => {
-      if (data[key] !== null && data[key] !== undefined && data[key] !== '') {
-        if (key === 'certificates' && data[key] instanceof File) {
-          formData.append('certificates', data[key]);
-        } else {
-          formData.append(key, data[key]);
-        }
-      }
-    });
+    console.log('EducationForm - onSubmit called with data:', data);
+    console.log('EducationForm - Data keys:', Object.keys(data));
     
-    await dispatch(saveEducation(formData));
+    // Handle file input - get the actual File object
+    const certificates = data.certificates;
+    if (certificates && certificates.length > 0) {
+      data.certificates = certificates[0]; // Extract File from FileList
+    } else if (certificates && certificates.length === 0) {
+      delete data.certificates; // Remove empty FileList
+    }
+    
+    console.log('EducationForm - Processed data:', data);
+    console.log('EducationForm - Dispatching saveEducation with raw data');
+    
+    await dispatch(saveEducation(data));
     // Navigate to next step after successful save
     setTimeout(() => {
       dispatch(nextStep());
@@ -115,15 +123,10 @@ const EducationForm = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('title', courseFormData.title);
-    formData.append('provider', courseFormData.provider);
-    formData.append('completion_date', courseFormData.completion_date);
-    if (courseFormData.certificate) {
-      formData.append('certificate', courseFormData.certificate);
-    }
-
-    dispatch(createCourse(formData));
+    console.log('EducationForm - handleAddCourse with data:', courseFormData);
+    
+    // Dispatch raw data object, not FormData
+    dispatch(createCourse(courseFormData));
     setCourseFormData({ title: '', provider: '', completion_date: '', certificate: null });
     setShowCourseForm(false);
   };
@@ -270,8 +273,8 @@ const EducationForm = () => {
             </div>
           )}
 
-          {courses && courses.length > 0 ? (
-            courses.map((course) => (
+          {coursesList && coursesList.length > 0 ? (
+            coursesList.map((course) => (
               <CourseItem key={course.id}>
                 <CourseInfo>
                   <CourseTitle>{course.title}</CourseTitle>

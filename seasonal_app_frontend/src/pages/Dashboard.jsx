@@ -39,7 +39,9 @@ const Dashboard = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate('/login');
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 100);
   };
 
   return (

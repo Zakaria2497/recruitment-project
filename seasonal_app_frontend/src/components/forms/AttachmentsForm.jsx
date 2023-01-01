@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
 import { Button, Input } from '../ui';
-import { uploadAttachment, deleteAttachment, submitProfile, previousStep } from '../../store/slices/profileSlice';
+import { uploadAttachment, deleteAttachment, submitProfile, previousStep, nextStep } from '../../store/slices/profileSlice';
 import { formatFileSize } from '../../utils';
 
 const FormContainer = styled.div`
@@ -102,7 +102,14 @@ const attachmentTypes = [
 
 const AttachmentsForm = () => {
   const dispatch = useDispatch();
-  const { attachments, progress, isSubmitted, loading } = useSelector(state => state.profile);
+  const profileState = useSelector(state => state.profile);
+  const { 
+    attachments = [], 
+    progress = 0, 
+    isSubmitted = false, 
+    loading = false 
+  } = profileState || {};
+  
   const [fileInputs, setFileInputs] = useState({
     cv_resume: null,
     cover_letter: null,
@@ -126,11 +133,15 @@ const AttachmentsForm = () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('attachment_type', type);
-    formData.append('file', file);
+    console.log('AttachmentsForm - handleFileChange with type:', type, 'file:', file);
+    
+    // Dispatch raw data object with file, not FormData
+    const data = {
+      attachment_type: type,
+      file: file
+    };
 
-    dispatch(uploadAttachment(formData));
+    dispatch(uploadAttachment(data));
     setFileInputs({ ...fileInputs, [type]: null });
   };
 
@@ -152,7 +163,10 @@ const AttachmentsForm = () => {
   };
 
   const getAttachmentByType = (type) => {
-    return attachments?.find(a => a.attachment_type === type);
+    // Ensure attachments is an array
+    const attachmentsList = Array.isArray(attachments) ? attachments : 
+                           attachments?.results ? attachments.results : [];
+    return attachmentsList.find(a => a.attachment_type === type);
   };
 
   return (
@@ -201,6 +215,23 @@ const AttachmentsForm = () => {
         );
       })}
 
+      {isSubmitted && (
+        <div style={{
+          padding: '1.5rem',
+          backgroundColor: '#d1fae5',
+          border: '2px solid #059669',
+          borderRadius: '8px',
+          marginBottom: '1.5rem',
+          textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🎉</div>
+          <strong style={{ color: '#065f46', fontSize: '1.25rem' }}>Profile Submitted Successfully!</strong>
+          <p style={{ color: '#047857', margin: '0.5rem 0 0 0', fontSize: '0.875rem' }}>
+            Your profile has been submitted for review. You will be notified once it's processed.
+          </p>
+        </div>
+      )}
+
       <SummaryCard>
         <h3 style={{ marginBottom: '1rem' }}>Profile Summary</h3>
         <div style={{ marginBottom: '0.5rem' }}>
@@ -209,12 +240,26 @@ const AttachmentsForm = () => {
         <ProgressBar>
           <ProgressFill progress={progress} />
         </ProgressBar>
-        {isSubmitted && (
-          <div style={{ marginTop: '1rem', color: '#059669', fontWeight: 500 }}>
-            ✓ Profile submitted successfully!
-          </div>
-        )}
       </SummaryCard>
+
+      {progress < 80 && (
+        <div style={{
+          padding: '1rem',
+          backgroundColor: '#fef3c7',
+          border: '1px solid #fbbf24',
+          borderRadius: '8px',
+          marginTop: '1.5rem',
+          marginBottom: '1rem'
+        }}>
+          <strong style={{ color: '#92400e' }}>⚠️ Complete your profile to submit</strong>
+          <p style={{ color: '#78350f', margin: '0.5rem 0 0 0', fontSize: '0.875rem' }}>
+            You need at least 80% completion to submit. Current: {progress}%
+          </p>
+          <p style={{ color: '#78350f', margin: '0.25rem 0 0 0', fontSize: '0.875rem' }}>
+            Go back and fill in the missing sections (Education, Bank Info, etc.)
+          </p>
+        </div>
+      )}
 
       <NavigationButtons>
         <Button type="button" variant="outline" onClick={() => dispatch(previousStep())}>
@@ -222,11 +267,10 @@ const AttachmentsForm = () => {
         </Button>
         <Button
           type="button"
-          onClick={handleSubmitProfile}
-          disabled={loading || isSubmitted || progress < 80}
-          variant={isSubmitted ? 'success' : 'primary'}
+          onClick={() => dispatch(nextStep())}
+          variant="primary"
         >
-          {loading ? 'Submitting...' : isSubmitted ? 'Profile Submitted' : 'Submit Profile'}
+          Next: Review & Submit
         </Button>
       </NavigationButtons>
     </FormContainer>

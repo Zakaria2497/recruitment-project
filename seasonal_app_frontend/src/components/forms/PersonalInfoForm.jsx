@@ -95,18 +95,15 @@ const PersonalInfoForm = () => {
   };
 
   const onSubmit = async (data) => {
-    const formData = new FormData();
-    Object.keys(data).forEach(key => {
-      if (data[key] !== null && data[key] !== undefined && data[key] !== '') {
-        if (key === 'photo' && data[key] instanceof File) {
-          formData.append('photo', data[key]);
-        } else {
-          formData.append(key, data[key]);
-        }
-      }
-    });
+    console.log('PersonalInfoForm - onSubmit called with data:', data);
+    console.log('PersonalInfoForm - Data keys:', Object.keys(data));
+    console.log('PersonalInfoForm - Data values:', Object.values(data));
     
-    await dispatch(savePersonalInfo(formData));
+    // Send raw data object (including File objects) to saga
+    // The saga/service will handle FormData conversion
+    console.log('PersonalInfoForm - Dispatching savePersonalInfo with raw data');
+    await dispatch(savePersonalInfo(data));
+    
     // Navigate to next step after successful save
     setTimeout(() => {
       dispatch(nextStep());

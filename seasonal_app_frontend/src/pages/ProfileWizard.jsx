@@ -5,13 +5,14 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
 import { Card } from '../components/ui';
-import { loadProfile, setCurrentStep } from '../store/slices/profileSlice';
+import { loadProfile, setCurrentStep, setError } from '../store/slices/profileSlice';
 import PersonalInfoForm from '../components/forms/PersonalInfoForm';
 import EducationForm from '../components/forms/EducationForm';
 import ExperienceForm from '../components/forms/ExperienceForm';
 import SkillsForm from '../components/forms/SkillsForm';
 import BankInfoForm from '../components/forms/BankInfoForm';
 import AttachmentsForm from '../components/forms/AttachmentsForm';
+import ProfileReviewForm from '../components/forms/ProfileReviewForm';
 
 const WizardContainer = styled.div`
   min-height: 100vh;
@@ -216,41 +217,98 @@ const steps = [
   { number: 4, label: 'Skills & Languages' },
   { number: 5, label: 'Bank Info' },
   { number: 6, label: 'Attachments' },
+  { number: 7, label: 'Review & Submit' },
 ];
 
 const ProfileWizard = () => {
   const dispatch = useDispatch();
-  const { currentStep, progress, loading, personalInfo } = useSelector(state => state.profile);
+  const profileState = useSelector(state => state.profile);
+  const { currentStep, progress, loading, personalInfo, error, completion } = profileState;
+
+  console.log('🔍 ProfileWizard - RENDER');
+  console.log('🔍 ProfileWizard - Full state:', profileState);
+  console.log('🔍 ProfileWizard - currentStep:', currentStep);
+  console.log('🔍 ProfileWizard - progress:', progress);
+  console.log('🔍 ProfileWizard - loading:', loading);
+  console.log('🔍 ProfileWizard - error:', error);
+  console.log('🔍 ProfileWizard - completion:', completion);
+  console.log('🔍 ProfileWizard - personalInfo:', personalInfo);
 
   useEffect(() => {
-    // Load profile data on mount only once, and only if not already loaded
-    if (!personalInfo && !loading) {
+    console.log('✅ ProfileWizard - useEffect MOUNTED');
+    console.log('✅ ProfileWizard - personalInfo:', personalInfo ? 'exists' : 'null');
+    console.log('✅ ProfileWizard - loading:', loading);
+    
+    // Always try to load profile on mount
+    console.log('✅ ProfileWizard - Dispatching loadProfile...');
       dispatch(loadProfile());
-    }
+    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run on mount
 
   const handleStepClick = (stepNumber) => {
-    if (stepNumber <= currentStep) {
-      dispatch(setCurrentStep(stepNumber));
-    }
+    console.log('ProfileWizard - Navigating to step:', stepNumber);
+    dispatch(setCurrentStep(stepNumber));
+    // Scroll to top of the form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Check if a step is complete based on actual completion data
+  const isStepComplete = (stepNumber) => {
+    if (!completion) return false;
+    
+    switch (stepNumber) {
+      case 1:
+        return completion.personal_info_complete || false;
+      case 2:
+        return completion.education_complete || false;
+      case 3:
+        return completion.experience_complete || false;
+      case 4:
+        return completion.skills_complete || false;
+      case 5:
+        return completion.bank_info_complete || false;
+      case 6:
+        return completion.attachments_complete || false;
+      case 7:
+        return completion.is_submitted || false;
+      default:
+        return false;
+    }
+  };
+  
+  // Scroll to top when step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentStep]);
+
   const renderStepContent = () => {
+    console.log('🎨 ProfileWizard - renderStepContent for step:', currentStep);
+    
     switch (currentStep) {
       case 1:
+        console.log('🎨 Rendering PersonalInfoForm');
         return <PersonalInfoForm />;
       case 2:
+        console.log('🎨 Rendering EducationForm');
         return <EducationForm />;
       case 3:
+        console.log('🎨 Rendering ExperienceForm');
         return <ExperienceForm />;
       case 4:
+        console.log('🎨 Rendering SkillsForm');
         return <SkillsForm />;
       case 5:
+        console.log('🎨 Rendering BankInfoForm');
         return <BankInfoForm />;
       case 6:
+        console.log('🎨 Rendering AttachmentsForm');
         return <AttachmentsForm />;
+      case 7:
+        console.log('🎨 Rendering ProfileReviewForm');
+        return <ProfileReviewForm />;
       default:
+        console.log('🎨 Rendering default PersonalInfoForm');
         return <PersonalInfoForm />;
     }
   };
@@ -261,7 +319,8 @@ const ProfileWizard = () => {
     3: 'Work experience history',
     4: 'Skills and languages',
     5: 'Banking information',
-    6: 'Documents and submission',
+    6: 'Upload documents',
+    7: 'Review and submit',
   };
 
   return (
@@ -285,35 +344,50 @@ const ProfileWizard = () => {
                 <span>Completion</span>
                 <ProgressPercentage>{progress}%</ProgressPercentage>
               </ProgressText>
+              {progress < 100 && (
+                <p style={{ 
+                  fontSize: '0.875rem', 
+                  color: '#6b7280', 
+                  marginTop: '0.5rem',
+                  fontStyle: 'italic'
+                }}>
+                  {progress < 80 
+                    ? `Complete at least 80% to submit your profile` 
+                    : `Almost there! Just ${100 - progress}% more to go`}
+                </p>
+              )}
             </ProgressSection>
 
             <div>
               <ProgressTitle style={{ marginBottom: '1rem' }}>Steps</ProgressTitle>
               <StepList>
-                {steps.map((step) => (
-                  <StepItem
-                    key={step.number}
-                    active={step.number === currentStep}
-                    completed={step.number < currentStep}
-                    clickable={step.number <= currentStep}
-                    onClick={() => handleStepClick(step.number)}
-                  >
-                    <StepNumber
+                {steps.map((step) => {
+                  const stepCompleted = isStepComplete(step.number);
+                  return (
+                    <StepItem
+                      key={step.number}
                       active={step.number === currentStep}
-                      completed={step.number < currentStep}
+                      completed={stepCompleted}
+                      clickable={true}
+                      onClick={() => handleStepClick(step.number)}
                     >
-                      {step.number < currentStep ? '✓' : step.number}
-                    </StepNumber>
-                    <StepInfo>
-                      <StepTitle active={step.number === currentStep}>
-                        {step.label}
-                      </StepTitle>
-                      <StepDescription>
-                        {stepDescriptions[step.number]}
-                      </StepDescription>
-                    </StepInfo>
-                  </StepItem>
-                ))}
+                      <StepNumber
+                        active={step.number === currentStep}
+                        completed={stepCompleted}
+                      >
+                        {stepCompleted ? '✓' : step.number}
+                      </StepNumber>
+                      <StepInfo>
+                        <StepTitle active={step.number === currentStep}>
+                          {step.label}
+                        </StepTitle>
+                        <StepDescription>
+                          {stepDescriptions[step.number]}
+                        </StepDescription>
+                      </StepInfo>
+                    </StepItem>
+                  );
+                })}
               </StepList>
             </div>
           </SidebarCard>
@@ -321,7 +395,7 @@ const ProfileWizard = () => {
 
         <MainContent>
           <MainCard>
-            {loading && (
+            {loading ? (
               <div style={{ 
                 textAlign: 'center', 
                 padding: '4rem 2rem',
@@ -340,9 +414,48 @@ const ProfileWizard = () => {
                 }} />
                 <p style={{ color: '#6b7280', fontSize: '1rem' }}>Loading your profile...</p>
               </div>
+            ) : (
+              <>
+                {error && (
+                  <div style={{ 
+                    padding: '1rem 1.5rem',
+                    backgroundColor: '#fef3c7',
+                    border: '1px solid #fbbf24',
+                    borderRadius: '8px',
+                    marginBottom: '1.5rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
+                    <div>
+                      <strong style={{ color: '#92400e' }}>⚠️ Some data couldn't be loaded</strong>
+                      <p style={{ color: '#78350f', margin: '0.25rem 0 0 0', fontSize: '0.875rem' }}>
+                        You can still continue filling out your profile
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        dispatch(setError(null));
+                        dispatch(loadProfile());
+                      }}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        backgroundColor: '#fbbf24',
+                        color: '#78350f',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+                {renderStepContent()}
+              </>
             )}
-
-            {!loading && renderStepContent()}
           </MainCard>
         </MainContent>
       </WizardContent>

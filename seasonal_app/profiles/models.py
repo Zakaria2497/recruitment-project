@@ -277,12 +277,9 @@ class BankInfo(CreatedByMixin, UpdatedByMixin, IsActiveMixin):
     bank_name = models.CharField(max_length=100, blank=True)
     account_holder_name = models.CharField(max_length=100, blank=True)
     iban = models.CharField(
-        max_length=34,
-        validators=[RegexValidator(
-            r'^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$',
-            'Enter a valid IBAN.'
-        )],
-        blank=True
+        max_length=50,
+        blank=True,
+        help_text='International Bank Account Number'
     )
 
     def save(self, *args, **kwargs):
@@ -469,3 +466,114 @@ class ProfileCompletion(CreatedByMixin, UpdatedByMixin, IsActiveMixin):
 
     def __str__(self):
         return f"Profile completion ({self.overall_completion_percentage}%) - {self.user.username}"
+
+
+class Organization(CreatedByMixin, UpdatedByMixin, IsActiveMixin):
+    """
+    Organization model to represent companies/employers
+    Users who are approved become members of an organization
+    """
+    name = models.CharField(max_length=255, unique=True, db_index=True)
+    description = models.TextField(blank=True)
+    logo = models.FileField(upload_to='organization_logos/%Y/%m/%d/', null=True, blank=True)
+    email = models.EmailField(max_length=255, blank=True)
+    phone = models.CharField(
+        max_length=30,
+        validators=[RegexValidator(r'^\+?1?\d{9,15}$', 'Enter a valid phone number.')],
+        blank=True
+    )
+    website = models.URLField(max_length=255, blank=True)
+    address = models.TextField(blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    country = models.CharField(max_length=100, blank=True)
+    registration_number = models.CharField(max_length=100, blank=True, help_text='Company registration number')
+    
+    def save(self, *args, **kwargs):
+        if self.id:
+            self.modified_at = datetime.datetime.now(pytz.utc)
+        super(Organization, self).save(*args, **kwargs)
+
+    class Meta:
+        db_table = 'organizations'
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['is_active']),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class OrganizationMembership(CreatedByMixin, UpdatedByMixin, IsActiveMixin):
+    """
+    Membership model linking users to organizations with roles
+    Users apply for jobs and upon approval become members
+    """
+    ROLE_CHOICES = [
+        ('owner', 'Owner'),
+        ('admin', 'Admin'),
+        ('manager', 'Manager'),
+        ('hr', 'HR'),
+        ('recruiter', 'Recruiter'),
+        ('employee', 'Employee'),
+        ('contractor', 'Contractor'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('suspended', 'Suspended'),
+    ]
+    
+    user = models.ForeignKey(
+        'users.User',
+        on_delete=models.CASCADE,
+        related_name='organization_memberships',
+        db_index=True
+    )
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name='memberships',
+        db_index=True
+    )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='employee')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    joined_at = models.DateTimeField(null=True, blank=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        'users.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_memberships'
+    )
+    notes = models.TextField(blank=True, help_text='Internal notes about this membership')
+    
+    def save(self, *args, **kwargs):
+        # Auto-set joined_at when status changes to approved
+        if self.status == 'approved' and not self.joined_at:
+            self.joined_at = datetime.datetime.now(pytz.utc)
+            if not self.approved_at:
+                self.approved_at = datetime.datetime.now(pytz.utc)
+        
+        if self.id:
+            self.modified_at = datetime.datetime.now(pytz.utc)
+        super(OrganizationMembership, self).save(*args, **kwargs)
+
+    class Meta:
+        db_table = 'organization_memberships'
+        unique_together = ['user', 'organization']
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['organization']),
+            models.Index(fields=['role']),
+            models.Index(fields=['status']),
+            models.Index(fields=['is_active']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.organization.name} ({self.role})"

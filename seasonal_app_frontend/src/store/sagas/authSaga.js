@@ -65,10 +65,37 @@ function* registerSaga(action) {
     const { user, tokens } = response.data;
     yield put(registerSuccess({ user, tokens }));
   } catch (error) {
-    const errorMessage = error.response?.data?.error || 
-                        error.response?.data?.detail || 
-                        error.message || 
-                        'Registration failed';
+    let errorMessage = 'Registration failed';
+    
+    // Handle Django REST Framework validation errors
+    if (error.response?.data) {
+      const errors = error.response.data;
+      
+      // Check if it's a field validation error object
+      if (typeof errors === 'object' && !errors.error && !errors.detail) {
+        const errorMessages = [];
+        
+        // Convert field errors to readable messages
+        Object.keys(errors).forEach(field => {
+          const fieldErrors = errors[field];
+          if (Array.isArray(fieldErrors)) {
+            fieldErrors.forEach(msg => {
+              // Capitalize field name and format message
+              const fieldName = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              errorMessages.push(`${fieldName}: ${msg}`);
+            });
+          }
+        });
+        
+        errorMessage = errorMessages.join('\n') || 'Validation failed';
+      } else {
+        // Handle single error message
+        errorMessage = errors.error || errors.detail || error.message || 'Registration failed';
+      }
+    } else {
+      errorMessage = error.message || 'Registration failed';
+    }
+    
     yield put(registerFailure(errorMessage));
   }
 }
@@ -84,10 +111,36 @@ function* loginSaga(action) {
     const { user, tokens } = response.data;
     yield put(loginSuccess({ user, tokens }));
   } catch (error) {
-    const errorMessage = error.response?.data?.error || 
-                        error.response?.data?.detail || 
-                        error.message || 
-                        'Login failed';
+    let errorMessage = 'Login failed';
+    
+    // Handle Django REST Framework validation errors
+    if (error.response?.data) {
+      const errors = error.response.data;
+      
+      // Check if it's a field validation error object
+      if (typeof errors === 'object' && !errors.error && !errors.detail) {
+        const errorMessages = [];
+        
+        // Convert field errors to readable messages
+        Object.keys(errors).forEach(field => {
+          const fieldErrors = errors[field];
+          if (Array.isArray(fieldErrors)) {
+            fieldErrors.forEach(msg => {
+              const fieldName = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              errorMessages.push(`${fieldName}: ${msg}`);
+            });
+          }
+        });
+        
+        errorMessage = errorMessages.join('\n') || 'Login failed';
+      } else {
+        // Handle single error message
+        errorMessage = errors.error || errors.detail || error.message || 'Login failed';
+      }
+    } else {
+      errorMessage = error.message || 'Login failed';
+    }
+    
     yield put(loginFailure(errorMessage));
   }
 }
@@ -99,11 +152,14 @@ function* logoutSaga() {
   try {
     // Clear tokens from API if needed
     yield call(authService.logout);
+    // Clear persisted state
+    localStorage.clear();
+    sessionStorage.clear();
   } catch (error) {
     // Even if API call fails, clear local state
     console.error('Logout error:', error);
-  } finally {
-    yield put(logout());
+    localStorage.clear();
+    sessionStorage.clear();
   }
 }
 

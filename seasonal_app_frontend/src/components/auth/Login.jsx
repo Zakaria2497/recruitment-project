@@ -148,6 +148,8 @@ const ErrorBanner = styled.div`
   color: ${({ theme }) => theme.colors.danger};
   font-size: ${({ theme }) => theme.fontSize.sm};
   border: 1px solid ${({ theme }) => `${theme.colors.danger}33`};
+  white-space: pre-line;
+  line-height: 1.6;
 `;
 
 const HelperText = styled.p`
@@ -220,6 +222,43 @@ const VerificationActions = styled.div`
   align-items: center;
 `;
 
+const PasswordWrapper = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const PasswordToggle = styled.button`
+  position: absolute;
+  right: 12px;
+  top: calc(50% + 12px);
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  transition: color 0.2s ease;
+  z-index: 10;
+  
+  &:hover {
+    color: ${({ theme }) => theme.colors.textPrimary};
+    transform: translateY(-50%);
+  }
+  
+  &:focus {
+    outline: none;
+    color: ${({ theme }) => theme.colors.primary};
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+`;
+
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -245,10 +284,16 @@ const Login = () => {
   const [verificationError, setVerificationError] = useState(null);
   const [pendingSignupPayload, setPendingSignupPayload] = useState(null);
   const otpRefs = useRef([]);
+  
+  // Password visibility states
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      console.log('Login - User authenticated, redirecting to home');
+      navigate('/', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -398,6 +443,11 @@ const Login = () => {
     setVerificationCode(Array(SIGNUP_CODE_LENGTH).fill(''));
     setVerificationCountdown(60);
     setVerificationError(null);
+    
+    // Resend OTP to the phone number
+    if (verificationTargets.phone) {
+      dispatch(sendOTPRequest({ mobile_number: verificationTargets.phone }));
+    }
   };
 
   const handleEditSignupInfo = () => {
@@ -476,14 +526,34 @@ const Login = () => {
                   onChange={handleLoginChange('email')}
                   required
                 />
-                <Input
-                  type="password"
-                  label="Password"
-                  placeholder="••••••••"
-                  value={loginForm.password}
-                  onChange={handleLoginChange('password')}
-                  required
-                />
+                <div>
+                  <PasswordWrapper>
+                    <Input
+                      type={showLoginPassword ? "text" : "password"}
+                      label="Password"
+                      placeholder="••••••••"
+                      value={loginForm.password}
+                      onChange={handleLoginChange('password')}
+                      required
+                    />
+                    <PasswordToggle
+                      type="button"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      aria-label={showLoginPassword ? "Hide password" : "Show password"}
+                    >
+                      {showLoginPassword ? (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      ) : (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </PasswordToggle>
+                  </PasswordWrapper>
+                </div>
                 <Button type="submit" fullWidth disabled={loading}>
                   {loading ? 'Signing in...' : 'Login'}
                 </Button>
@@ -548,22 +618,58 @@ const Login = () => {
                   />
                 </FieldRow>
                 <FieldRow>
-                  <Input
-                    type="password"
-                    label="Password"
-                    placeholder="Create a password"
-                    value={signupForm.password}
-                    onChange={handleSignupChange('password')}
-                    error={signupErrors.password}
-                  />
-                  <Input
-                    type="password"
-                    label="Confirm Password"
-                    placeholder="Repeat password"
-                    value={signupForm.confirmPassword}
-                    onChange={handleSignupChange('confirmPassword')}
-                    error={signupErrors.confirmPassword}
-                  />
+                  <PasswordWrapper>
+                    <Input
+                      type={showSignupPassword ? "text" : "password"}
+                      label="Password"
+                      placeholder="Create a password"
+                      value={signupForm.password}
+                      onChange={handleSignupChange('password')}
+                      error={signupErrors.password}
+                    />
+                    <PasswordToggle
+                      type="button"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      aria-label={showSignupPassword ? "Hide password" : "Show password"}
+                    >
+                      {showSignupPassword ? (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      ) : (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </PasswordToggle>
+                  </PasswordWrapper>
+                  <PasswordWrapper>
+                    <Input
+                      type={showConfirmPassword ? "text" : "password"}
+                      label="Confirm Password"
+                      placeholder="Repeat password"
+                      value={signupForm.confirmPassword}
+                      onChange={handleSignupChange('confirmPassword')}
+                      error={signupErrors.confirmPassword}
+                    />
+                    <PasswordToggle
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                    >
+                      {showConfirmPassword ? (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      ) : (
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </PasswordToggle>
+                  </PasswordWrapper>
                 </FieldRow>
                 <HelperText>
                   Once you tap “Create Account” we’ll send a 6-digit verification code to both your

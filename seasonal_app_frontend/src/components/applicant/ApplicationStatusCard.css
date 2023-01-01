@@ -1,0 +1,239 @@
+/* ApplicationStatusCard Styles */
+
+.application-status-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-left: 4px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.application-status-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Status Colors */
+.application-status-card.status-pending {
+  border-left-color: #f59e0b;
+  background: linear-gradient(to right, #fffbeb 0%, white 10%);
+}
+
+.application-status-card.status-approved {
+  border-left-color: #10b981;
+  background: linear-gradient(to right, #f0fdf4 0%, white 10%);
+}
+
+.application-status-card.status-rejected {
+  border-left-color: #ef4444;
+  background: linear-gradient(to right, #fef2f2 0%, white 10%);
+}
+
+.application-status-card.status-suspended {
+  border-left-color: #6b7280;
+  background: linear-gradient(to right, #f9fafb 0%, white 10%);
+}
+
+/* Header */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.org-info {
+  flex: 1;
+}
+
+.org-name {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.role-applied {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.role-applied strong {
+  color: #374151;
+  text-transform: capitalize;
+}
+
+/* Status Badge */
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.status-approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-badge.status-suspended {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.status-icon {
+  font-size: 18px;
+}
+
+.status-text {
+  text-transform: capitalize;
+}
+
+/* Status Message */
+.status-message {
+  padding: 16px;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.status-message p {
+  margin: 0;
+  font-size: 15px;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* Dates Section */
+.dates-section {
+  display: flex;
+  gap: 20px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.date-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.date-item label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.date-item span {
+  font-size: 14px;
+  color: #111827;
+  font-weight: 500;
+}
+
+/* Notes Section */
+.notes-section {
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border-left: 3px solid #3b82f6;
+}
+
+.notes-section label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.notes-section p {
+  margin: 0;
+  font-size: 14px;
+  color: #374151;
+  font-style: italic;
+}
+
+/* Card Footer */
+.card-footer {
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+}
+
+.card-footer.success {
+  background: #f0fdf4;
+  margin: -24px -24px -24px;
+  padding: 16px 24px;
+  border-radius: 0 0 12px 12px;
+  border-top: 1px solid #86efac;
+}
+
+.card-footer.success span {
+  color: #065f46;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-secondary {
+  padding: 10px 20px;
+  background: #f3f4f6;
+  color: #6b7280;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .application-status-card {
+    padding: 20px;
+  }
+
+  .card-header {
+    flex-direction: column;
+  }
+
+  .status-badge {
+    align-self: flex-start;
+  }
+
+  .dates-section {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .org-name {
+    font-size: 18px;
+  }
+}
+

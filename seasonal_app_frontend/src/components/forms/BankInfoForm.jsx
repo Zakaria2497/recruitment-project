@@ -37,29 +37,72 @@ const NavigationButtons = styled.div`
 // IBAN validation function
 const validateIBAN = (iban) => {
   if (!iban) return true; // Optional field
-  // Basic IBAN validation: 15-34 characters, alphanumeric
-  const ibanRegex = /^[A-Z0-9]{15,34}$/i;
-  return ibanRegex.test(iban.replace(/\s/g, '')) || 'Invalid IBAN format (15-34 characters)';
+  
+  const cleaned = iban.replace(/\s/g, '').toUpperCase();
+  
+  // Check length
+  if (cleaned.length < 15 || cleaned.length > 34) {
+    return `IBAN must be 15-34 characters (current: ${cleaned.length})`;
+  }
+  
+  // Check format: 2 letters (country) + 2 digits + alphanumeric
+  if (cleaned.length >= 4) {
+    const countryCode = cleaned.substring(0, 2);
+    const checkDigits = cleaned.substring(2, 4);
+    
+    if (!/^[A-Z]{2}$/.test(countryCode)) {
+      return 'IBAN must start with 2-letter country code (e.g., AE, GB, US)';
+    }
+    
+    if (!/^[0-9]{2}$/.test(checkDigits)) {
+      return 'IBAN country code must be followed by 2 check digits';
+    }
+  }
+  
+  // Check only alphanumeric
+  if (!/^[A-Z0-9]+$/.test(cleaned)) {
+    return 'IBAN can only contain letters and numbers';
+  }
+  
+  return true;
 };
 
 const BankInfoForm = () => {
   const dispatch = useDispatch();
-  const { bankInfo, loading } = useSelector(state => state.profile);
+  const profileState = useSelector(state => state.profile);
+  const { bankInfo, loading } = profileState;
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm();
   const ibanValue = watch('iban');
+  
+  console.log('BankInfoForm - RENDER');
+  console.log('BankInfoForm - profileState:', profileState);
+  console.log('BankInfoForm - bankInfo:', bankInfo);
 
   useEffect(() => {
+    console.log('BankInfoForm - useEffect - bankInfo:', bankInfo);
     if (bankInfo) {
+      console.log('BankInfoForm - Setting form values from bankInfo');
       Object.keys(bankInfo).forEach(key => {
-        if (bankInfo[key]) {
+        if (bankInfo[key] && key !== 'id' && key !== 'user') {
+          console.log(`BankInfoForm - Setting ${key}:`, bankInfo[key]);
           setValue(key, bankInfo[key]);
         }
       });
+    } else {
+      console.log('BankInfoForm - No bankInfo to load');
     }
   }, [bankInfo, setValue]);
 
   const onSubmit = async (data) => {
-    await dispatch(saveBankInfo(data));
+    console.log('BankInfoForm - onSubmit called with data:', data);
+    console.log('BankInfoForm - Current bankInfo state:', bankInfo);
+    console.log('BankInfoForm - Dispatching saveBankInfo with raw data');
+    
+    // Include the ID if we're updating
+    const payload = bankInfo?.id ? { ...data, id: bankInfo.id } : data;
+    console.log('BankInfoForm - Final payload:', payload);
+    
+    await dispatch(saveBankInfo(payload));
     // Navigate to next step after successful save
     setTimeout(() => {
       dispatch(nextStep());
@@ -108,8 +151,12 @@ const BankInfoForm = () => {
             maxLength={42} // 34 chars + spaces
           />
           <IBANInfo>
-            <strong>IBAN Format:</strong> 15-34 alphanumeric characters. 
-            Example: AE070331234567890123456
+            <strong>IBAN Format:</strong> Must start with 2-letter country code + 2 check digits + account number<br />
+            <strong>Examples:</strong><br />
+            • UAE: AE07 0331 2345 6789 0123 456<br />
+            • UK: GB29 NWBK 6016 1331 9268 19<br />
+            • US: US64 SVBK 0000 0000 1234 5678<br />
+            <em>(Spaces are optional and will be removed automatically)</em>
           </IBANInfo>
         </div>
 

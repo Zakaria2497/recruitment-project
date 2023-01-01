@@ -6,7 +6,8 @@ from rest_framework import serializers
 from django.core.validators import RegexValidator
 from .models import (
     PersonalInfo, Education, Course, Experience,
-    Language, Skill, BankInfo, Attachment, ProfileCompletion
+    Language, Skill, BankInfo, Attachment, ProfileCompletion,
+    Organization, OrganizationMembership
 )
 
 
@@ -216,17 +217,21 @@ class BankInfoSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'user', 'created_at', 'modified_at', 'is_active']
     
     def validate_iban(self, value):
-        """Validate IBAN format"""
+        """Validate IBAN format - very lenient"""
         if value:
-            value = value.replace(' ', '').upper()
-            # IBAN validation regex
-            iban_validator = RegexValidator(
-                r'^[A-Z]{2}[0-9]{2}[A-Z0-9]{4}[0-9]{7}([A-Z0-9]?){0,16}$',
-                'Enter a valid IBAN.'
-            )
-            iban_validator(value)
-            if len(value) < 15 or len(value) > 34:
-                raise serializers.ValidationError("IBAN must be between 15 and 34 characters.")
+            # Remove spaces and convert to uppercase
+            cleaned_value = value.replace(' ', '').replace('-', '').upper()
+            
+            # Very basic validation - just check it's not empty and has reasonable length
+            if len(cleaned_value) < 5:
+                raise serializers.ValidationError("IBAN is too short.")
+            
+            if len(cleaned_value) > 50:
+                raise serializers.ValidationError("IBAN is too long.")
+            
+            # Return cleaned value (without spaces, uppercase)
+            return cleaned_value
+        
         return value
 
 
@@ -296,4 +301,243 @@ class ProfileCompletionSerializer(serializers.ModelSerializer):
             'is_submitted', 'submitted_at',
             'created_at', 'modified_at', 'is_active'
         ]
+
+
+class OrganizationSerializer(serializers.ModelSerializer):
+    """Serializer for Organization"""
+    logo = serializers.FileField(required=False, allow_null=True)
+    
+    class Meta:
+        model = Organization
+        fields = [
+            'id', 'name', 'description', 'logo', 'email', 'phone',
+            'website', 'address', 'city', 'country', 'registration_number',
+            'created_at', 'modified_at', 'is_active'
+        ]
+        read_only_fields = ['id', 'created_at', 'modified_at', 'is_active']
+    
+    def validate_name(self, value):
+        """Validate unique organization name"""
+        if not value or not value.strip():
+            raise serializers.ValidationError("Organization name is required.")
+        
+        instance = self.instance
+        if Organization.objects.filter(name__iexact=value).exclude(id=instance.id if instance else None).exists():
+            raise serializers.ValidationError("Organization with this name already exists.")
+        return value.strip()
+    
+    def validate_logo(self, value):
+        """Validate logo file"""
+        if value:
+            if value.size > 5 * 1024 * 1024:
+                raise serializers.ValidationError("Logo file size cannot exceed 5MB.")
+            valid_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.svg']
+            ext = os.path.splitext(value.name)[1].lower()
+            if ext not in valid_extensions:
+                raise serializers.ValidationError(f"Invalid file type. Allowed: {', '.join(valid_extensions)}")
+        return value
+
+
+class OrganizationMembershipSerializer(serializers.ModelSerializer):
+    """Serializer for OrganizationMembership"""
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    user_email = serializers.EmailField(source='user.email', read_only=True)
+    user_username = serializers.CharField(source='user.username', read_only=True)
+    organization_name = serializers.CharField(source='organization.name', read_only=True)
+    approved_by_email = serializers.EmailField(source='approved_by.email', read_only=True, allow_null=True)
+    
+    class Meta:
+        model = OrganizationMembership
+        fields = [
+            'id', 'user', 'user_email', 'user_username', 'organization', 'organization_name',
+            'role', 'status', 'joined_at', 'approved_at', 'approved_by', 'approved_by_email',
+            'notes', 'created_at', 'modified_at', 'is_active'
+        ]
+        read_only_fields = [
+            'id', 'user', 'user_email', 'user_username', 'organization_name',
+            'joined_at', 'approved_at', 'approved_by', 'approved_by_email',
+            'created_at', 'modified_at', 'is_active'
+        ]
+    
+    def validate(self, attrs):
+        """Validate membership"""
+        user = self.context['request'].user
+        organization = attrs.get('organization')
+        
+        # Check if membership already exists
+        instance = self.instance
+        if organization and OrganizationMembership.objects.filter(
+            user=user, organization=organization
+        ).exclude(id=instance.id if instance else None).exists():
+            raise serializers.ValidationError("You already have a membership with this organization.")
+        
+        return attrs
+
+
+class OrganizationMembershipApprovalSerializer(serializers.Serializer):
+    """Serializer for approving/rejecting memberships"""
+    status = serializers.ChoiceField(choices=['approved', 'rejected', 'suspended'])
+    notes = serializers.CharField(required=False, allow_blank=True)
+
+
+class ApplicantProfileSerializer(serializers.Serializer):
+    """Serializer for applicant profile data for dashboard card view"""
+    user_id = serializers.IntegerField(source='user.id')
+    email = serializers.EmailField(source='user.email')
+    phone = serializers.CharField(source='user.phone', allow_null=True)
+    
+    # Personal Info
+    first_name = serializers.CharField(source='user.personal_info.first_name', default='')
+    father_name = serializers.CharField(source='user.personal_info.father_name', default='')
+    family_name = serializers.CharField(source='user.personal_info.family_name', default='')
+    gender = serializers.CharField(source='user.personal_info.gender', default='')
+    birthdate = serializers.DateField(source='user.personal_info.birthdate', allow_null=True)
+    nationality = serializers.CharField(source='user.personal_info.nationality', default='')
+    city = serializers.CharField(source='user.personal_info.city', default='')
+    photo = serializers.FileField(source='user.personal_info.photo', allow_null=True)
+    
+    # Education
+    last_degree = serializers.CharField(source='user.education.last_degree', default='')
+    major = serializers.CharField(source='user.education.major', default='')
+    
+    # Experience count
+    experience_years = serializers.SerializerMethodField()
+    
+    # Profile completion
+    completion_percentage = serializers.IntegerField(source='user.profile_completion.overall_completion_percentage', default=0)
+    
+    # Membership details
+    membership_id = serializers.UUIDField(source='id')
+    role = serializers.CharField()
+    status = serializers.CharField()
+    applied_at = serializers.DateTimeField(source='created_at')
+    notes = serializers.CharField(default='')
+    
+    def get_experience_years(self, obj):
+        """Calculate total years of experience"""
+        try:
+            from dateutil.relativedelta import relativedelta
+            from django.utils import timezone
+            experiences = obj.user.experiences.filter(is_active=True)
+            total_months = 0
+            for exp in experiences:
+                start = exp.start_date
+                end = exp.end_date if exp.end_date else timezone.now().date()
+                if start:
+                    delta = relativedelta(end, start)
+                    total_months += delta.years * 12 + delta.months
+            return round(total_months / 12, 1)
+        except:
+            return 0
+
+
+class ApplicantCardSerializer(serializers.Serializer):
+    """Compact serializer for applicant card view"""
+    membership_id = serializers.UUIDField(source='id')
+    user_id = serializers.IntegerField(source='user.id')
+    
+    # Basic info
+    full_name = serializers.SerializerMethodField()
+    email = serializers.EmailField(source='user.email')
+    phone = serializers.CharField(source='user.phone', allow_null=True)
+    photo = serializers.SerializerMethodField()
+    
+    # Key details
+    age = serializers.SerializerMethodField()
+    city = serializers.SerializerMethodField()
+    nationality = serializers.SerializerMethodField()
+    education = serializers.SerializerMethodField()
+    experience_years = serializers.SerializerMethodField()
+    
+    # Membership
+    role = serializers.CharField()
+    status = serializers.CharField()
+    applied_at = serializers.DateTimeField(source='created_at')
+    notes = serializers.CharField(default='')
+    
+    # Profile status
+    completion_percentage = serializers.SerializerMethodField()
+    is_submitted = serializers.SerializerMethodField()
+    
+    def get_full_name(self, obj):
+        """Get full name from personal info"""
+        try:
+            pi = obj.user.personal_info
+            return f"{pi.first_name} {pi.father_name} {pi.family_name}".strip()
+        except:
+            return obj.user.email.split('@')[0]
+    
+    def get_photo(self, obj):
+        """Get photo URL"""
+        try:
+            if obj.user.personal_info.photo:
+                return obj.user.personal_info.photo.url
+        except:
+            pass
+        return None
+    
+    def get_age(self, obj):
+        """Calculate age from birthdate"""
+        try:
+            from datetime import date
+            birthdate = obj.user.personal_info.birthdate
+            if birthdate:
+                today = date.today()
+                return today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+        except:
+            pass
+        return None
+    
+    def get_city(self, obj):
+        """Get city"""
+        try:
+            return obj.user.personal_info.city
+        except:
+            return ''
+    
+    def get_nationality(self, obj):
+        """Get nationality"""
+        try:
+            return obj.user.personal_info.nationality
+        except:
+            return ''
+    
+    def get_education(self, obj):
+        """Get education summary"""
+        try:
+            edu = obj.user.education
+            return f"{edu.last_degree} in {edu.major}" if edu.major else edu.last_degree
+        except:
+            return ''
+    
+    def get_experience_years(self, obj):
+        """Calculate total years of experience"""
+        try:
+            from dateutil.relativedelta import relativedelta
+            from django.utils import timezone
+            experiences = obj.user.experiences.filter(is_active=True)
+            total_months = 0
+            for exp in experiences:
+                start = exp.start_date
+                end = exp.end_date if exp.end_date else timezone.now().date()
+                if start:
+                    delta = relativedelta(end, start)
+                    total_months += delta.years * 12 + delta.months
+            return round(total_months / 12, 1)
+        except:
+            return 0
+    
+    def get_completion_percentage(self, obj):
+        """Get profile completion"""
+        try:
+            return obj.user.profile_completion.overall_completion_percentage
+        except:
+            return 0
+    
+    def get_is_submitted(self, obj):
+        """Check if profile is submitted"""
+        try:
+            return obj.user.profile_completion.is_submitted
+        except:
+            return False
 

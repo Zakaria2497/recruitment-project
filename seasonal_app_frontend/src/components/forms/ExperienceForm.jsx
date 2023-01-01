@@ -68,6 +68,11 @@ const NavigationButtons = styled.div`
 const ExperienceForm = () => {
   const dispatch = useDispatch();
   const { experiences, loading } = useSelector(state => state.profile);
+  
+  // Ensure experiences is an array
+  const experiencesList = Array.isArray(experiences) ? experiences : 
+                         experiences?.results ? experiences.results : [];
+  
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     job_title: '',
@@ -90,20 +95,10 @@ const ExperienceForm = () => {
       return;
     }
 
-    const formDataToSend = new FormData();
-    formDataToSend.append('job_title', formData.job_title);
-    formDataToSend.append('employer', formData.employer);
-    formDataToSend.append('start_date', formData.start_date);
-    if (!formData.is_current) {
-      formDataToSend.append('end_date', formData.end_date);
-    }
-    formDataToSend.append('tasks', formData.tasks);
-    formDataToSend.append('is_current', formData.is_current);
-    if (formData.certificate) {
-      formDataToSend.append('certificate', formData.certificate);
-    }
-
-    dispatch(createExperience(formDataToSend));
+    console.log('ExperienceForm - handleAddExperience with data:', formData);
+    
+    // Dispatch raw data object, not FormData
+    dispatch(createExperience(formData));
     setFormData({
       job_title: '',
       employer: '',
@@ -211,8 +206,8 @@ const ExperienceForm = () => {
         </div>
       )}
 
-      {experiences && experiences.length > 0 ? (
-        experiences.map((experience) => (
+      {experiencesList && experiencesList.length > 0 ? (
+        experiencesList.map((experience) => (
           <ExperienceItem key={experience.id}>
             <ExperienceHeader>
               <ExperienceTitle>{experience.job_title}</ExperienceTitle>

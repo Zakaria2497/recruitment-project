@@ -78,6 +78,12 @@ const NavigationButtons = styled.div`
 const SkillsForm = () => {
   const dispatch = useDispatch();
   const { languages, skills, loading } = useSelector(state => state.profile);
+  
+  // Ensure languages and skills are arrays
+  const languagesList = Array.isArray(languages) ? languages : 
+                       languages?.results ? languages.results : [];
+  const skillsList = Array.isArray(skills) ? skills : 
+                    skills?.results ? skills.results : [];
   const [languageForm, setLanguageForm] = useState({
     language: '',
     proficiency_level: 'Good',
@@ -158,9 +164,9 @@ const SkillsForm = () => {
           Add Language
         </Button>
 
-        {languages && languages.length > 0 ? (
+        {languagesList && languagesList.length > 0 ? (
           <ItemList>
-            {languages.map((lang) => (
+            {languagesList.map((lang) => (
               <ItemChip key={lang.id}>
                 {lang.language} ({lang.proficiency_level})
                 <DeleteButton onClick={() => handleDeleteLanguage(lang.id)}>
@@ -190,9 +196,9 @@ const SkillsForm = () => {
           Add Skills
         </Button>
 
-        {skills && skills.length > 0 ? (
+        {skillsList && skillsList.length > 0 ? (
           <ItemList>
-            {skills.map((skill) => (
+            {skillsList.map((skill) => (
               <ItemChip key={skill.id}>
                 {skill.skill_name}
                 <DeleteButton onClick={() => handleDeleteSkill(skill.id)}>

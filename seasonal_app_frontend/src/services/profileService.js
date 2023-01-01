@@ -11,6 +11,8 @@ export const getPersonalInfo = () => {
 };
 
 export const updatePersonalInfo = (data) => {
+  console.log('updatePersonalInfo - Raw data:', data);
+  
   const formData = new FormData();
   
   Object.keys(data).forEach(key => {
@@ -21,7 +23,13 @@ export const updatePersonalInfo = (data) => {
     }
   });
   
-  return api.patch('/profile/personal-info/', formData, {
+  // Log FormData contents
+  console.log('updatePersonalInfo - FormData contents:');
+  for (let [key, value] of formData.entries()) {
+    console.log(`  ${key}:`, value);
+  }
+  
+  return api.post('/profile/personal-info/', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -35,7 +43,9 @@ export const getEducation = () => {
   return api.get('/profile/education/');
 };
 
-export const updateEducation = (data) => {
+export const createEducation = (data) => {
+  console.log('createEducation - Raw data:', data);
+  
   const formData = new FormData();
   
   Object.keys(data).forEach(key => {
@@ -46,11 +56,45 @@ export const updateEducation = (data) => {
     }
   });
   
-  return api.patch('/profile/education/', formData, {
+  console.log('createEducation - FormData contents:');
+  for (let [key, value] of formData.entries()) {
+    console.log(`  ${key}:`, value);
+  }
+  
+  return api.post('/profile/education/', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
+};
+
+export const updateEducation = (id, data) => {
+  console.log('updateEducation - ID:', id, 'Raw data:', data);
+  
+  const formData = new FormData();
+  
+  Object.keys(data).forEach(key => {
+    if (key === 'certificates' && data[key] instanceof File) {
+      formData.append('certificates', data[key]);
+    } else if (data[key] !== null && data[key] !== undefined) {
+      formData.append(key, data[key]);
+    }
+  });
+  
+  console.log('updateEducation - FormData contents:');
+  for (let [key, value] of formData.entries()) {
+    console.log(`  ${key}:`, value);
+  }
+  
+  return api.put(`/profile/education/${id}/`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+
+export const deleteEducation = (id) => {
+  return api.delete(`/profile/education/${id}/`);
 };
 
 /**
@@ -61,6 +105,8 @@ export const getCourses = () => {
 };
 
 export const createCourse = (data) => {
+  console.log('createCourse - Raw data:', data);
+  
   const formData = new FormData();
   
   Object.keys(data).forEach(key => {
@@ -70,6 +116,11 @@ export const createCourse = (data) => {
       formData.append(key, data[key]);
     }
   });
+  
+  console.log('createCourse - FormData contents:');
+  for (let [key, value] of formData.entries()) {
+    console.log(`  ${key}:`, value);
+  }
   
   return api.post('/profile/courses/', formData, {
     headers: {
@@ -90,6 +141,8 @@ export const getExperiences = () => {
 };
 
 export const createExperience = (data) => {
+  console.log('createExperience - Raw data:', data);
+  
   const formData = new FormData();
   
   Object.keys(data).forEach(key => {
@@ -99,6 +152,11 @@ export const createExperience = (data) => {
       formData.append(key, data[key]);
     }
   });
+  
+  console.log('createExperience - FormData contents:');
+  for (let [key, value] of formData.entries()) {
+    console.log(`  ${key}:`, value);
+  }
   
   return api.post('/profile/experiences/', formData, {
     headers: {
@@ -119,6 +177,7 @@ export const getLanguages = () => {
 };
 
 export const createLanguage = (data) => {
+  console.log('createLanguage - Raw data:', data);
   return api.post('/profile/languages/', data);
 };
 
@@ -134,6 +193,7 @@ export const getSkills = () => {
 };
 
 export const createSkill = (data) => {
+  console.log('createSkill - Raw data:', data);
   return api.post('/profile/skills/', data);
 };
 
@@ -148,8 +208,18 @@ export const getBankInfo = () => {
   return api.get('/profile/bank-info/');
 };
 
-export const updateBankInfo = (data) => {
-  return api.patch('/profile/bank-info/', data);
+export const createBankInfo = (data) => {
+  console.log('createBankInfo - Raw data:', data);
+  return api.post('/profile/bank-info/', data);
+};
+
+export const updateBankInfo = (id, data) => {
+  console.log('updateBankInfo - ID:', id, 'Raw data:', data);
+  return api.put(`/profile/bank-info/${id}/`, data);
+};
+
+export const deleteBankInfo = (id) => {
+  return api.delete(`/profile/bank-info/${id}/`);
 };
 
 /**
@@ -160,9 +230,16 @@ export const getAttachments = () => {
 };
 
 export const uploadAttachment = (data) => {
+  console.log('uploadAttachment - Raw data:', data);
+  
   const formData = new FormData();
   formData.append('attachment_type', data.attachment_type);
   formData.append('file', data.file);
+  
+  console.log('uploadAttachment - FormData contents:');
+  for (let [key, value] of formData.entries()) {
+    console.log(`  ${key}:`, value);
+  }
   
   return api.post('/profile/attachments/', formData, {
     headers: {
