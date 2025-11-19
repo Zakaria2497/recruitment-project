@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Seasonal Hiring — English (Updated)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+          Roboto, "Helvetica Neue", Arial;
+      }
+      .toast {
+        transition: all 0.2s ease;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-gray-50 text-gray-800">
+    <div class="max-w-6xl mx-auto p-6">
+      <header class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-semibold">Seasonal Hiring Platform</h1>
+          <p class="text-sm text-gray-600">
+            Quick sign-up and complete your profile step-by-step.
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            id="demoModeBtn"
+            class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+          >
+            🚀 Demo Mode (Show All Forms)
+          </button>
+        </div>
+      </header>
+
+      <div class="bg-white shadow rounded-xl overflow-hidden">
+        <div class="grid grid-cols-12">
+          <!-- Side -->
+          <aside
+            class="col-span-12 md:col-span-4 p-6 bg-gradient-to-b from-white/60 to-gray-100"
+          >
+            <h2 class="text-lg font-medium">Profile Status</h2>
+            <p id="profileStatus" class="text-sm text-gray-600 mt-2">
+              Not started.
+            </p>
+
+            <div class="mt-4">
+              <p class="text-sm text-gray-600">Completion</p>
+              <div class="w-full bg-gray-200 h-3 rounded-full mt-2">
+                <div
+                  id="progressBar"
+                  class="h-3 rounded-full bg-green-400 w-0"
+                ></div>
+              </div>
+              <p id="progressText" class="text-sm font-medium mt-2">0%</p>
+            </div>
+
+            <div class="mt-6 text-sm text-gray-600">
+              <p class="font-medium mb-1">Demo Information</p>
+              <ul class="list-inside list-disc space-y-1">
+                <li>Click "Demo Mode" to see all form steps</li>
+                <li>Navigate freely between all 6 steps</li>
+                <li>All data fields will be pre-filled with samples</li>
+                <li>Shows complete user onboarding process</li>
+              </ul>
+            </div>
+          </aside>
+
+          <!-- Main -->
+          <main class="col-span-12 md:col-span-8 p-6">
+            <div
+              id="toast"
+              class="fixed left-1/2 -translate-x-1/2 top-6 z-50 hidden toast"
+            >
+              <div
+                id="toastInner"
+                class="bg-white border shadow rounded-md px-4 py-2 text-sm text-green-700"
+              >
+                ✅ Auto-saved
+              </div>
+            </div>
+
+            <!-- Registration -->
+            <section id="registerSection" class="space-y-4">
+              <h3 class="text-xl font-semibold">Quick Registration</h3>
+              <form
+                id="registerForm"
+                class="space-y-3"
+                onsubmit="return false;"
+              >
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div class="md:col-span-2">
+                    <p class="font-medium">Full name (split)</p>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mt-2">
+                      <input
+                        id="reg_firstName"
+                        placeholder="First name *"
+                        class="p-2 rounded-md border border-gray-300 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      />
+                      <input
+                        id="reg_fatherName"
+                        placeholder="Father name *"
+                        class="p-2 rounded-md border border-gray-300 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      />
+                      <input
+                        id="reg_grandName"
+                        placeholder="Grand name *"
+                        class="p-2 rounded-md border border-gray-300 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      />
+                      <input
+                        id="reg_familyName"
+                        placeholder="Family name *"
+                        class="p-2 rounded-md border border-gray-300 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      />
+                    </div>
+                    <p id="regNameErr" class="text-sm text-red-500 mt-1"></p>
+                  </div>
+
+                  <div>
+                    <label class="text-sm">Phone *</label>
+                    <input
+                      id="reg_phone"
+                      required
+                      placeholder="e.g. +971501234567"
+                      class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                    />
+                  </div>
+                  <div>
+                    <label class="text-sm">Email *</label>
+                    <input
+                      id="reg_email"
+                      type="email"
+                      required
+                      class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                    />
+                  </div>
+                  <div>
+                    <label class="text-sm">Password *</label>
+                    <input
+                      id="reg_password"
+                      type="password"
+                      required
+                      class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                    />
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <button
+                      id="sendOTPBtn"
+                      type="button"
+                      class="px-4 py-2 bg-sky-600 text-white rounded-md"
+                    >
+                      Send OTP (sim)
+                    </button>
+                    <button
+                      id="skipRegBtn"
+                      type="button"
+                      class="px-4 py-2 border border-sky-600 text-sky-600 rounded-md hover:bg-sky-50"
+                    >
+                      Skip (Demo)
+                    </button>
+                    <span id="regMsg" class="text-sm text-red-500"></span>
+                  </div>
+                </div>
+
+                <div id="otpBlock" class="hidden mt-2 space-y-2">
+                  <div>
+                    <label class="text-sm">Enter verification code</label>
+                    <input
+                      id="otpInput"
+                      placeholder="1234"
+                      class="mt-1 block w-48 rounded-md border-gray-300 p-2 bg-white"
+                    />
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button
+                      id="verifyOtpBtn"
+                      type="button"
+                      class="px-3 py-2 bg-green-600 text-white rounded-md"
+                    >
+                      Verify
+                    </button>
+                    <button
+                      id="resendOtpBtn"
+                      type="button"
+                      class="px-3 py-2 border rounded-md"
+                    >
+                      Resend
+                    </button>
+                    <span id="otpHint" class="text-sm text-gray-600"
+                      >Default code: <strong>1234</strong></span
+                    >
+                  </div>
+                </div>
+              </form>
+            </section>
+
+            <!-- Wizard -->
+            <section id="wizardSection" class="hidden mt-6">
+              <div class="mb-4">
+                <ol class="flex gap-2 text-xs">
+                  <li
+                    id="step1-indicator"
+                    class="px-3 py-1 rounded-full cursor-pointer transition-colors bg-sky-500 text-white"
+                    onclick="navigateToStep(1)"
+                  >
+                    1. Personal
+                  </li>
+                  <li
+                    id="step2-indicator"
+                    class="px-3 py-1 rounded-full cursor-pointer transition-colors bg-sky-100 text-sky-700 hover:bg-sky-200"
+                    onclick="navigateToStep(2)"
+                  >
+                    2. Education
+                  </li>
+                  <li
+                    id="step3-indicator"
+                    class="px-3 py-1 rounded-full cursor-pointer transition-colors bg-sky-100 text-sky-700 hover:bg-sky-200"
+                    onclick="navigateToStep(3)"
+                  >
+                    3. Experience
+                  </li>
+                  <li
+                    id="step4-indicator"
+                    class="px-3 py-1 rounded-full cursor-pointer transition-colors bg-sky-100 text-sky-700 hover:bg-sky-200"
+                    onclick="navigateToStep(4)"
+                  >
+                    4. Skills
+                  </li>
+                  <li
+                    id="step5-indicator"
+                    class="px-3 py-1 rounded-full cursor-pointer transition-colors bg-sky-100 text-sky-700 hover:bg-sky-200"
+                    onclick="navigateToStep(5)"
+                  >
+                    5. Bank
+                  </li>
+                  <li
+                    id="step6-indicator"
+                    class="px-3 py-1 rounded-full cursor-pointer transition-colors bg-sky-100 text-sky-700 hover:bg-sky-200"
+                    onclick="navigateToStep(6)"
+                  >
+                    6. CV/Resume
+                  </li>
+                </ol>
+              </div>
+
+              <div id="steps" class="space-y-6">
+                <!-- Step 1 -->
+                <div data-step="1" class="step">
+                  <h4 class="font-semibold">Personal information</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    <div class="md:col-span-2">
+                      <p class="font-medium">Full name (split)</p>
+                      <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mt-2">
+                        <input
+                          id="firstName"
+                          placeholder="First name *"
+                          class="p-2 rounded-md border border-gray-300 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                        />
+                        <input
+                          id="fatherName"
+                          placeholder="Father name *"
+                          class="p-2 rounded-md border border-gray-300 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                        />
+                        <input
+                          id="grandName"
+                          placeholder="Grand name *"
+                          class="p-2 rounded-md border border-gray-300 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                        />
+                        <input
+                          id="familyName"
+                          placeholder="Family name *"
+                          class="p-2 rounded-md border border-gray-300 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                        />
+                      </div>
+                      <p id="nameErr" class="text-sm text-red-500 mt-1"></p>
+                    </div>
+
+                    <div>
+                      <label class="text-sm">Gender</label>
+                      <select
+                        id="gender"
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      >
+                        <option value="">-- choose --</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                        <option>Other</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label class="text-sm">Birthdate</label>
+                      <input
+                        id="birthdate"
+                        type="date"
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="text-sm">Nationality</label>
+                      <input
+                        id="nationality"
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="text-sm">ID/Residency number *</label>
+                      <input
+                        id="id_number"
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="text-sm">City</label>
+                      <input
+                        id="city"
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      />
+                    </div>
+
+                    <div class="md:col-span-2">
+                      <label class="text-sm">Address (optional)</label>
+                      <textarea
+                        id="address"
+                        rows="2"
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      ></textarea>
+                    </div>
+
+                    <div class="md:col-span-2">
+                      <label class="text-sm">Profile Photo (optional)</label>
+                      <input
+                        id="photo"
+                        type="file"
+                        accept="image/*"
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      />
+                      <p class="text-xs text-gray-500 mt-1">
+                        Upload a professional photo for your profile
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="flex justify-between mt-4">
+                    <div></div>
+                    <div>
+                      <button
+                        id="toStep2"
+                        data-action="next"
+                        class="px-4 py-2 bg-sky-600 text-white rounded-md"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Step 2: Education -->
+                <div data-step="2" class="step hidden">
+                  <h4 class="font-semibold">Education</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    <div>
+                      <label class="text-sm">Highest degree</label>
+                      <select
+                        id="last_degree"
+                        class="mt-1 block w-full rounded-md border-gray-300 p-2 bg-white"
+                      >
+                        <option value="">-- choose --</option>
+                        <option>High School</option>
+                        <option>Diploma</option>
+                        <option>Bachelor</option>
+                        <option>Master</option>
+                        <option>PhD</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="text-sm">Major</label>
+                      <input
+                        id="major"
+                        class="mt-1 block w-full rounded-md border-gray-300 p-2 bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="text-sm">Institution</label>
+                      <input
+                        id="school"
+                        class="mt-1 block w-full rounded-md border-gray-300 p-2 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label class="text-sm">Grad year / expected</label>
+                      <input
+                        id="grad_year"
+                        type="number"
+                        min="1900"
+                        max="2100"
+                        class="mt-1 block w-full rounded-md border-gray-300 p-2 bg-white"
+                      />
+                    </div>
+
+                    <div class="md:col-span-2">
+                      <label class="text-sm"
+                        >Education Certificates (optional)</label
+                      >
+                      <input
+                        id="education_certs"
+                        type="file"
+                        accept=".pdf,image/*"
+                        multiple
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-white"
+                      />
+                      <p class="text-xs text-gray-500 mt-1">
+                        Upload diploma, degree certificates, or transcripts
+                      </p>
+                    </div>
+
+                    <div class="md:col-span-2">
+                      <label class="text-sm">Courses (add multiple)</label>
+                      <div id="coursesList" class="space-y-2 mt-2"></div>
+                      <button
+                        id="addCourseBtn"
+                        type="button"
+                        class="mt-2 px-3 py-1 border rounded-md text-sky-600"
+                      >
+                        + Add course
+                      </button>
+                    </div>
+
+                    <!--
+                    <div class="md:col-span-2">
+                      <label class="text-sm"
+                        >Education Certificates (optional)</label
+                      >
+                      <input
+                        id="education_certs"
+                        type="file"
+                        accept=".pdf,image/*"
+                        multiple
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-white"
+                      />
+                      <p class="text-xs text-gray-500 mt-1">
+                        Upload diploma, degree certificates, or transcripts
+                      </p>
+                    </div>
+                  --></div>
+
+                  <div class="flex justify-between mt-4">
+                    <button
+                      data-action="prev"
+                      class="px-4 py-2 border rounded-md"
+                    >
+                      Back
+                    </button>
+                    <button
+                      data-action="next"
+                      class="px-4 py-2 bg-sky-600 text-white rounded-md"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Step 3: Experience -->
+                <div data-step="3" class="step hidden">
+                  <h4 class="font-semibold">Experience</h4>
+                  <div id="experienceList" class="space-y-4 mt-3"></div>
+                  <button
+                    id="addExpBtn"
+                    type="button"
+                    class="mt-2 px-3 py-1 border rounded-md text-sky-600"
+                  >
+                    + Add experience
+                  </button>
+
+                  <!--
+                  <div class="mt-4">
+                    <label class="text-sm"
+                      >Experience Certificates (optional)</label
+                    >
+                    <input
+                      id="experience_certs"
+                      type="file"
+                      accept=".pdf,image/*"
+                      multiple
+                      class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-white"
+                    />
+                    <p class="text-xs text-gray-500 mt-1">
+                      Upload employment letters, experience certificates, or
+                      references
+                    </p>
+                  </div>
+                -->
+
+                  <div class="flex justify-between mt-4">
+                    <button
+                      data-action="prev"
+                      class="px-4 py-2 border rounded-md"
+                    >
+                      Back
+                    </button>
+                    <button
+                      data-action="next"
+                      class="px-4 py-2 bg-sky-600 text-white rounded-md"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Step 4: Skills -->
+                <div data-step="4" class="step hidden">
+                  <h4 class="font-semibold">Skills & Languages</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    <div>
+                      <label class="text-sm">Languages</label>
+                      <div id="languagesList" class="space-y-2 mt-2"></div>
+                      <button
+                        id="addLangBtn"
+                        type="button"
+                        class="mt-2 px-3 py-1 border rounded-md text-sky-600"
+                      >
+                        + Add language
+                      </button>
+                    </div>
+
+                    <div>
+                      <label class="text-sm"
+                        >Technical skills (comma separated)</label
+                      >
+                      <input
+                        id="skills"
+                        placeholder="e.g. cashier, Excel, customer service"
+                        class="mt-1 block w-full rounded-md border-gray-300 p-2 bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label class="text-sm"
+                        >Previously worked seasonally?</label
+                      >
+                      <select
+                        id="seasonal_exp"
+                        class="mt-1 block w-full rounded-md border-gray-300 p-2 bg-white"
+                      >
+                        <option value="">-- choose --</option>
+                        <option>Yes</option>
+                        <option>No</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label class="text-sm">Can work weekends?</label>
+                      <select
+                        id="weekend_ok"
+                        class="mt-1 block w-full rounded-md border-gray-300 p-2 bg-white"
+                      >
+                        <option value="">-- choose --</option>
+                        <option>Yes</option>
+                        <option>No</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="flex justify-between mt-4">
+                    <button
+                      data-action="prev"
+                      class="px-4 py-2 border rounded-md"
+                    >
+                      Back
+                    </button>
+                    <button
+                      data-action="next"
+                      class="px-4 py-2 bg-sky-600 text-white rounded-md"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Step 5: Bank -->
+                <div data-step="5" class="step hidden">
+                  <h4 class="font-semibold">Bank Information</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    <div>
+                      <label class="text-sm">Bank name</label>
+                      <input
+                        id="bank_name"
+                        class="mt-1 block w-full rounded-md border-gray-300 p-2 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label class="text-sm">Account holder name</label>
+                      <input
+                        id="account_name"
+                        class="mt-1 block w-full rounded-md border-gray-300 p-2 bg-white"
+                      />
+                    </div>
+                    <div class="md:col-span-2">
+                      <label class="text-sm">IBAN</label>
+                      <input
+                        id="iban"
+                        class="mt-1 block w-full rounded-md border-gray-300 p-2 bg-white"
+                      />
+                      <p id="ibanHint" class="text-xs text-gray-500 mt-1">
+                        Client-side light check only — validate on server.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="flex justify-between mt-4">
+                    <button
+                      data-action="prev"
+                      class="px-4 py-2 border rounded-md"
+                    >
+                      Back
+                    </button>
+                    <button
+                      data-action="next"
+                      class="px-4 py-2 bg-sky-600 text-white rounded-md"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Step 6: CV/Resume & Finish -->
+                <div data-step="6" class="step hidden">
+                  <h4 class="font-semibold">CV/Resume & Finish</h4>
+                  <div class="grid grid-cols-1 gap-3 mt-3">
+                    <div>
+                      <label class="text-sm">CV/Resume (optional)</label>
+                      <input
+                        id="cv_resume"
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-white"
+                      />
+                      <p class="text-xs text-gray-500 mt-1">
+                        Upload your CV or Resume (PDF, DOC, or DOCX format)
+                      </p>
+                    </div>
+
+                    <div class="mt-4 p-4 bg-blue-50 rounded-md">
+                      <h5 class="font-medium text-blue-900">Profile Summary</h5>
+                      <p class="text-sm text-blue-700 mt-1">
+                        You're almost done! Review your information in the
+                        previous steps before submitting. Your profile will be
+                        reviewed and you'll be contacted for suitable seasonal
+                        opportunities.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="flex justify-between mt-6">
+                    <button
+                      data-action="prev"
+                      class="px-4 py-2 border rounded-md"
+                    >
+                      Back
+                    </button>
+                    <div class="space-x-2">
+                      <button
+                        id="saveDraftBtn"
+                        type="button"
+                        class="px-4 py-2 border rounded-md"
+                      >
+                        Save draft
+                      </button>
+                      <button
+                        id="submitBtn"
+                        type="button"
+                        class="px-4 py-2 bg-green-600 text-white rounded-md"
+                      >
+                        Submit & Finish
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div
+              id="finalMsg"
+              class="hidden mt-6 p-4 rounded-md bg-green-50 text-green-800"
+            ></div>
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // English standalone updated: registration now has separate name fields and only light mode.
+      // OTP, auto-save, wizard same as before but registration copies name parts into wizard on verify.
+
+      const SIM_OTP = "1234";
+      const STATE_KEY = "seasonal_en_v2";
+      let user = {};
+      let currentStep = 1;
+      const totalSteps = 6;
+
+      const sendOTPBtn = document.getElementById("sendOTPBtn");
+      const otpBlock = document.getElementById("otpBlock");
+      const verifyOtpBtn = document.getElementById("verifyOtpBtn");
+      const resendOtpBtn = document.getElementById("resendOtpBtn");
+      const otpInput = document.getElementById("otpInput");
+      const regMsg = document.getElementById("regMsg");
+      const registerSection = document.getElementById("registerSection");
+      const wizardSection = document.getElementById("wizardSection");
+      const steps = Array.from(document.querySelectorAll(".step"));
+      const progressBar = document.getElementById("progressBar");
+      const progressText = document.getElementById("progressText");
+      const toast = document.getElementById("toast");
+      const toastInner = document.getElementById("toastInner");
+
+      // OTP simulation
+      sendOTPBtn.addEventListener("click", () => {
+        const first = document.getElementById("reg_firstName").value.trim();
+        const family = document.getElementById("reg_familyName").value.trim();
+        const phone = document.getElementById("reg_phone").value.trim();
+        const email = document.getElementById("reg_email").value.trim();
+        const pw = document.getElementById("reg_password").value;
+        // basic check: require at least first and family in registration
+        if (!first || !family || !phone || !email || !pw) {
+          regMsg.textContent =
+            "Please fill required fields (first & family names required).";
+          return;
+        }
+        regMsg.textContent = "OTP sent (sim).";
+        otpBlock.classList.remove("hidden");
+        user = { phone, email };
+      });
+      verifyOtpBtn.addEventListener("click", () => {
+        const code = otpInput.value.trim();
+        if (code === SIM_OTP) {
+          regMsg.textContent = "";
+          // copy registration name parts into wizard fields
+          const regFirst = document
+            .getElementById("reg_firstName")
+            .value.trim();
+          const regFather = document
+            .getElementById("reg_fatherName")
+            .value.trim();
+          const regGrand = document
+            .getElementById("reg_grandName")
+            .value.trim();
+          const regFamily = document
+            .getElementById("reg_familyName")
+            .value.trim();
+
+          document.getElementById("firstName").value = regFirst;
+          document.getElementById("fatherName").value = regFather;
+          document.getElementById("grandName").value = regGrand;
+          document.getElementById("familyName").value = regFamily;
+
+          registerSection.classList.add("hidden");
+          wizardSection.classList.remove("hidden");
+          showStep(1);
+          showToast("Verified — continue filling your profile.");
+          const d = loadDraft();
+          if (d) populateForm(d);
+        } else {
+          regMsg.textContent = "Invalid code.";
+        }
+      });
+      resendOtpBtn.addEventListener("click", () => {
+        alert("Sim: OTP resent (1234).");
+      });
+
+      // Skip registration for demo
+      function startDemoMode() {
+        // Set demo personal info
+        document.getElementById("firstName").value = "Ahmed";
+        document.getElementById("fatherName").value = "Mohammed";
+        document.getElementById("grandName").value = "Abdullah";
+        document.getElementById("familyName").value = "Al-Rashid";
+        document.getElementById("gender").value = "Male";
+        document.getElementById("birthdate").value = "1995-06-15";
+        document.getElementById("nationality").value = "UAE";
+        document.getElementById("id_number").value = "784199512345678";
+        document.getElementById("city").value = "Dubai";
+        document.getElementById("address").value = "Al Barsha, Dubai, UAE";
+
+        // Set demo education
+        document.getElementById("last_degree").value = "Bachelor";
+        document.getElementById("major").value = "Business Administration";
+        document.getElementById("school").value =
+          "American University of Sharjah";
+        document.getElementById("grad_year").value = "2018";
+
+        // Set demo skills
+        document.getElementById("skills").value =
+          "Customer Service, MS Office, Arabic/English, Cash Handling";
+        document.getElementById("seasonal_exp").value = "Yes";
+        document.getElementById("weekend_ok").value = "Yes";
+
+        // Set demo bank info
+        document.getElementById("bank_name").value = "Emirates NBD";
+        document.getElementById("account_name").value =
+          "Ahmed Mohammed Abdullah Al-Rashid";
+        document.getElementById("iban").value = "AE070331234567890123456";
+
+        registerSection.classList.add("hidden");
+        wizardSection.classList.remove("hidden");
+        showStep(1);
+        showToast(
+          "🚀 Demo Mode Active - All forms pre-filled with sample data!"
+        );
+
+        // Add some sample courses
+        setTimeout(() => {
+          addCourse({
+            title: "Food Safety Certificate",
+            provider: "Dubai Municipality",
+            date: "2023-01-15",
+          });
+          addCourse({
+            title: "Customer Service Excellence",
+            provider: "Emirates Institute",
+            date: "2022-08-20",
+          });
+        }, 100);
+
+        // Add sample experience
+        setTimeout(() => {
+          addExperience({
+            title: "Sales Associate",
+            employer: "Mall of the Emirates",
+            from: "2022-11-01",
+            to: "2023-01-31",
+            tasks:
+              "Assisted customers, handled cash transactions, managed inventory",
+          });
+          addExperience({
+            title: "Waiter",
+            employer: "Jumeirah Beach Hotel",
+            from: "2021-12-01",
+            to: "2022-02-28",
+            tasks: "Served customers, took orders, maintained cleanliness",
+          });
+        }, 200);
+
+        // Add sample languages
+        setTimeout(() => {
+          addLanguage({ lang: "Arabic", level: "Excellent" });
+          addLanguage({ lang: "English", level: "Very Good" });
+          addLanguage({ lang: "Hindi", level: "Good" });
+        }, 300);
+      }
+
+      document
+        .getElementById("skipRegBtn")
+        .addEventListener("click", startDemoMode);
+      document
+        .getElementById("demoModeBtn")
+        .addEventListener("click", startDemoMode);
+
+      // Wizard nav
+      function showStep(n) {
+        currentStep = n;
+        steps.forEach((s) => s.classList.add("hidden"));
+        const sec = document.querySelector('.step[data-step="' + n + '"]');
+        if (sec) sec.classList.remove("hidden");
+        updateStepIndicators();
+        updateProgress();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      // Update step indicators
+      function updateStepIndicators() {
+        for (let i = 1; i <= totalSteps; i++) {
+          const indicator = document.getElementById(`step${i}-indicator`);
+          if (indicator) {
+            if (i === currentStep) {
+              indicator.className =
+                "px-3 py-1 rounded-full cursor-pointer transition-colors bg-sky-500 text-white";
+            } else if (i < currentStep) {
+              indicator.className =
+                "px-3 py-1 rounded-full cursor-pointer transition-colors bg-green-500 text-white";
+            } else {
+              indicator.className =
+                "px-3 py-1 rounded-full cursor-pointer transition-colors bg-sky-100 text-sky-700 hover:bg-sky-200";
+            }
+          }
+        }
+      }
+
+      // Navigate to specific step (for step indicators)
+      function navigateToStep(stepNumber) {
+        if (stepNumber >= 1 && stepNumber <= totalSteps) {
+          showStep(stepNumber);
+        }
+      }
+
+      // Handle prev/next buttons
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-action]");
+        if (!btn) return;
+        const action = btn.getAttribute("data-action");
+        if (action === "next") {
+          if (currentStep < totalSteps) showStep(currentStep + 1);
+        } else if (action === "prev") {
+          if (currentStep > 1) showStep(currentStep - 1);
+        }
+      });
+
+      // Shortcut next from Step1 (no validation for demo)
+      document.getElementById("toStep2").addEventListener("click", () => {
+        document.getElementById("nameErr").textContent = "";
+        showStep(2);
+      });
+
+      // Dynamic fields
+      document
+        .getElementById("addCourseBtn")
+        .addEventListener("click", () => addCourse());
+      function addCourse(data = { title: "", provider: "", date: "" }) {
+        const id = "c_" + Date.now();
+        const wrap = document.createElement("div");
+        wrap.className = "p-3 border rounded-md bg-gray-50";
+        wrap.innerHTML = `
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+      <input placeholder="Course title" data-key="${id}_title" class="rounded-md border-gray-300 p-2 bg-white" value="${escapeHtml(
+          data.title || ""
+        )}" />
+      <input placeholder="Provider" data-key="${id}_provider" class="rounded-md border-gray-300 p-2 bg-white" value="${escapeHtml(
+          data.provider || ""
+        )}" />
+      <input type="date" data-key="${id}_date" class="rounded-md border-gray-300 p-2 bg-white" value="${
+          data.date || ""
+        }" />
+    </div>
+    <div class="mt-2">
+      <label class="text-xs text-gray-600">Certificate (optional)</label>
+      <input type="file" data-key="${id}_cert" accept=".pdf,image/*" class="mt-1 block w-full text-xs rounded-md border-gray-300 p-1 bg-white" />
+    </div>
+    <div class="mt-2 text-left"><button class="remove text-xs text-red-600">Remove</button></div>`;
+        document.getElementById("coursesList").appendChild(wrap);
+        wrap.querySelector(".remove").addEventListener("click", () => {
+          wrap.remove();
+          saveDraft(false);
+        });
+      }
+
+      document
+        .getElementById("addExpBtn")
+        .addEventListener("click", () => addExperience());
+      function addExperience(
+        data = { title: "", employer: "", from: "", to: "", tasks: "" }
+      ) {
+        const id = "e_" + Date.now();
+        const wrap = document.createElement("div");
+        wrap.className = "p-3 border rounded-md bg-gray-50";
+        wrap.innerHTML = `
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <input placeholder="Job title" data-key="${id}_title" class="rounded-md border-gray-300 p-2 bg-white" value="${escapeHtml(
+          data.title || ""
+        )}" />
+      <input placeholder="Employer" data-key="${id}_employer" class="rounded-md border-gray-300 p-2 bg-white" value="${escapeHtml(
+          data.employer || ""
+        )}" />
+      <input type="date" data-key="${id}_from" class="rounded-md border-gray-300 p-2 bg-white" value="${
+          data.from || ""
+        }" />
+      <input type="date" data-key="${id}_to" class="rounded-md border-gray-300 p-2 bg-white" value="${
+          data.to || ""
+        }" />
+      <textarea placeholder="Tasks" data-key="${id}_tasks" class="rounded-md border-gray-300 p-2 bg-white md:col-span-2">${escapeHtml(
+          data.tasks || ""
+        )}</textarea>
+    </div>
+    <div class="mt-2">
+      <label class="text-xs text-gray-600">Experience Certificate (optional)</label>
+      <input type="file" data-key="${id}_cert" accept=".pdf,image/*" class="mt-1 block w-full text-xs rounded-md border-gray-300 p-1 bg-white" />
+    </div>
+    <div class="mt-2 text-left"><button class="remove text-xs text-red-600">Remove</button></div>`;
+        document.getElementById("experienceList").appendChild(wrap);
+        wrap.querySelector(".remove").addEventListener("click", () => {
+          wrap.remove();
+          saveDraft(false);
+        });
+      }
+
+      document
+        .getElementById("addLangBtn")
+        .addEventListener("click", () => addLanguage());
+      function addLanguage(data = { lang: "", level: "" }) {
+        const id = "l_" + Date.now();
+        const wrap = document.createElement("div");
+        wrap.className =
+          "p-2 border rounded-md bg-gray-50 flex gap-2 items-center";
+        wrap.innerHTML = `
+    <input placeholder="Language" data-key="${id}_lang" class="rounded-md border-gray-300 p-2 bg-white" value="${escapeHtml(
+          data.lang || ""
+        )}" />
+    <select data-key="${id}_level" class="rounded-md border-gray-300 p-2 bg-white">
+      <option value="">Level</option>
+      <option ${data.level === "Excellent" ? "selected" : ""}>Excellent</option>
+      <option ${data.level === "Very Good" ? "selected" : ""}>Very Good</option>
+      <option ${data.level === "Good" ? "selected" : ""}>Good</option>
+      <option ${data.level === "Basic" ? "selected" : ""}>Basic</option>
+    </select>
+    <button class="remove text-red-600 text-sm">Remove</button>`;
+        document.getElementById("languagesList").appendChild(wrap);
+        wrap.querySelector(".remove").addEventListener("click", () => {
+          wrap.remove();
+          saveDraft(false);
+        });
+      }
+
+      // Collect/save/load draft
+      function collectFormData() {
+        const ids = [
+          "gender",
+          "birthdate",
+          "nationality",
+          "id_number",
+          "city",
+          "address",
+          "last_degree",
+          "major",
+          "school",
+          "grad_year",
+          "skills",
+          "seasonal_exp",
+          "weekend_ok",
+          "bank_name",
+          "account_name",
+          "iban",
+        ];
+        const data = {};
+        ids.forEach((k) => {
+          const el = document.getElementById(k);
+          data[k] = el ? el.value : "";
+        });
+        data.names = {
+          first: document.getElementById("firstName").value.trim(),
+          father: document.getElementById("fatherName").value.trim(),
+          grand: document.getElementById("grandName").value.trim(),
+          family: document.getElementById("familyName").value.trim(),
+        };
+        data.courses = [];
+        Array.from(document.querySelectorAll("#coursesList > div")).forEach(
+          (div) => {
+            const title =
+              div.querySelector('[data-key$="_title"]')?.value || "";
+            const provider =
+              div.querySelector('[data-key$="_provider"]')?.value || "";
+            const date = div.querySelector('[data-key$="_date"]')?.value || "";
+            if (title || provider || date)
+              data.courses.push({ title, provider, date });
+          }
+        );
+        data.experiences = [];
+        Array.from(document.querySelectorAll("#experienceList > div")).forEach(
+          (div) => {
+            const title =
+              div.querySelector('[data-key$="_title"]')?.value || "";
+            const employer =
+              div.querySelector('[data-key$="_employer"]')?.value || "";
+            const from = div.querySelector('[data-key$="_from"]')?.value || "";
+            const to = div.querySelector('[data-key$="_to"]')?.value || "";
+            const tasks =
+              div.querySelector('[data-key$="_tasks"]')?.value || "";
+            if (title || employer || from || to || tasks)
+              data.experiences.push({ title, employer, from, to, tasks });
+          }
+        );
+        data.languages = [];
+        Array.from(document.querySelectorAll("#languagesList > div")).forEach(
+          (div) => {
+            const lang = div.querySelector('[data-key$="_lang"]')?.value || "";
+            const level =
+              div.querySelector('[data-key$="_level"]')?.value || "";
+            if (lang) data.languages.push({ lang, level });
+          }
+        );
+        data.user = user || {};
+        data.filesMeta = {
+          hasPhoto: !!document.getElementById("photo")?.files?.length,
+          hasEducationCerts:
+            !!document.getElementById("education_certs")?.files?.length,
+          hasExperienceCerts:
+            !!document.getElementById("experience_certs")?.files?.length,
+          hasCvResume: !!document.getElementById("cv_resume")?.files?.length,
+          educationCertsCount:
+            document.getElementById("education_certs")?.files?.length || 0,
+          experienceCertsCount:
+            document.getElementById("experience_certs")?.files?.length || 0,
+        };
+        return data;
+      }
+      function saveDraft(showToastFlag = true) {
+        const draft = collectFormData();
+        localStorage.setItem(STATE_KEY, JSON.stringify(draft));
+        if (showToastFlag) showToast("Auto-saved");
+        updateProgress();
+      }
+      function loadDraft() {
+        const raw = localStorage.getItem(STATE_KEY);
+        if (!raw) return null;
+        try {
+          return JSON.parse(raw);
+        } catch (e) {
+          return null;
+        }
+      }
+      function populateForm(d) {
+        if (!d) return;
+        if (d.names) {
+          document.getElementById("firstName").value = d.names.first || "";
+          document.getElementById("fatherName").value = d.names.father || "";
+          document.getElementById("grandName").value = d.names.grand || "";
+          document.getElementById("familyName").value = d.names.family || "";
+        }
+        const ids = [
+          "gender",
+          "birthdate",
+          "nationality",
+          "id_number",
+          "city",
+          "address",
+          "last_degree",
+          "major",
+          "school",
+          "grad_year",
+          "skills",
+          "seasonal_exp",
+          "weekend_ok",
+          "bank_name",
+          "account_name",
+          "iban",
+        ];
+        ids.forEach((k) => {
+          if (d[k] !== undefined && document.getElementById(k))
+            document.getElementById(k).value = d[k];
+        });
+        document.getElementById("coursesList").innerHTML = "";
+        (d.courses || []).forEach((c) => addCourse(c));
+        document.getElementById("experienceList").innerHTML = "";
+        (d.experiences || []).forEach((e) => addExperience(e));
+        document.getElementById("languagesList").innerHTML = "";
+        (d.languages || []).forEach((l) => addLanguage(l));
+        updateProgress();
+      }
+
+      // Progress calc
+      function updateProgress() {
+        const d = collectFormData();
+        let score = 0,
+          max = 0;
+        const keys = [
+          "first",
+          "family",
+          "id_number",
+          "city",
+          "last_degree",
+          "skills",
+          "iban",
+        ];
+        max = keys.length;
+        keys.forEach((k) => {
+          if (k === "first") {
+            if (d.names.first) score++;
+          } else if (k === "family") {
+            if (d.names.family) score++;
+          } else if (d[k] && d[k].toString().trim() !== "") score++;
+        });
+        max++;
+        if ((d.experiences || []).length > 0) score++;
+        const pct = Math.round((score / max) * 100);
+        progressBar.style.width = pct + "%";
+        progressText.textContent = pct + "%";
+        document.getElementById("profileStatus").textContent =
+          pct >= 80 ? "Partially complete" : "Editing — incomplete";
+      }
+
+      // Auto-save logic
+      let autosaveTimer = null;
+      document.addEventListener("input", (e) => {
+        clearTimeout(autosaveTimer);
+        autosaveTimer = setTimeout(() => saveDraft(false), 1200);
+      });
+      setInterval(() => {
+        if (!wizardSection.classList.contains("hidden")) saveDraft(false);
+      }, 5000);
+      document.getElementById("saveDraftBtn").addEventListener("click", () => {
+        saveDraft(true);
+        alert("Draft saved locally");
+      });
+
+      // Submit simulation (no validation for demo)
+      document.getElementById("submitBtn").addEventListener("click", () => {
+        localStorage.removeItem(STATE_KEY);
+        wizardSection.classList.add("hidden");
+        document.getElementById("finalMsg").classList.remove("hidden");
+        document.getElementById("finalMsg").textContent =
+          "Demo completed! This shows all the data we will collect from users.";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+
+      // Toast
+      let toastTimer = null;
+      function showToast(text) {
+        toastInner.textContent = "✅ " + text;
+        toast.classList.remove("hidden");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.add("hidden");
+        }, 1800);
+      }
+
+      // IBAN quick check
+      function validateIBAN(iban) {
+        if (!iban) return false;
+        const cleaned = iban.replace(/\s+/g, "").toUpperCase();
+        if (!/^[A-Z]{2}\d{2}[A-Z0-9]{9,30}$/.test(cleaned)) return false;
+        return cleaned.length >= 15 && cleaned.length <= 34;
+      }
+
+      function escapeHtml(s) {
+        return (s || "").replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[c])
+        );
+      }
+
+      // Load and init
+      window.addEventListener("load", () => {
+        const d = loadDraft();
+        if (d) {
+          console.log("Draft exists");
+          populateForm(d);
+        }
+        // Initialize the first step only if wizard is visible
+        if (!wizardSection.classList.contains("hidden")) {
+          showStep(1);
+        }
+      });
+    </script>
+  </body>
+</html>
