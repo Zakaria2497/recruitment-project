@@ -4,7 +4,7 @@ URL configuration for profiles app
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    PersonalInfoViewSet,
+    PersonalInfoView,
     EducationViewSet,
     CourseViewSet,
     ExperienceViewSet,
@@ -17,7 +17,6 @@ from .views import (
 )
 
 router = DefaultRouter()
-router.register(r'personal-info', PersonalInfoViewSet, basename='personal-info')
 router.register(r'education', EducationViewSet, basename='education')
 router.register(r'courses', CourseViewSet, basename='course')
 router.register(r'experiences', ExperienceViewSet, basename='experience')
@@ -27,6 +26,7 @@ router.register(r'bank-info', BankInfoViewSet, basename='bank-info')
 router.register(r'attachments', AttachmentViewSet, basename='attachment')
 
 urlpatterns = [
+    path('personal-info/', PersonalInfoView.as_view(), name='personal-info'),
     path('completion/', ProfileCompletionView.as_view(), name='profile-completion'),
     path('submit/', ProfileSubmitView.as_view(), name='profile-submit'),
     path('', include(router.urls)),

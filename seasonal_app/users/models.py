@@ -16,6 +16,7 @@ SIGN_UP_SOURCE_CHOICES = [
     ('social_media', 'Social Media'),
     ('job_portal', 'Job Portal'),
     ('advertisement', 'Advertisement'),
+    ('web_app', 'Web App'),
 ]
 
 

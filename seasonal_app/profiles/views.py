@@ -6,6 +6,7 @@ from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from .models import (
     PersonalInfo, Education, Course, Experience,
     Language, Skill, BankInfo, Attachment, ProfileCompletion
@@ -18,39 +19,40 @@ from .serializers import (
 from .permissions import IsOwner
 
 
-class PersonalInfoViewSet(viewsets.ModelViewSet):
+class PersonalInfoView(APIView):
     """
-    PersonalInfo ViewSet
-    GET, PUT, PATCH /api/profile/personal-info/
+    Manage the authenticated user's personal info at /api/profile/personal-info/.
+    Supports GET, PUT, PATCH without requiring the profile ID.
     """
-    serializer_class = PersonalInfoSerializer
-    permission_classes = [IsAuthenticated, IsOwner]
-    
-    def get_queryset(self):
-        return PersonalInfo.objects.filter(user=self.request.user)
-    
-    def get_object(self):
-        obj, created = PersonalInfo.objects.get_or_create(user=self.request.user)
-        return obj
-    
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-    
-    def update(self, request, *args, **kwargs):
-        # Get or create personal info
-        personal_info, created = PersonalInfo.objects.get_or_create(
-            user=request.user
-        )
-        kwargs['pk'] = personal_info.id
-        return super().update(request, *args, **kwargs)
-    
-    def partial_update(self, request, *args, **kwargs):
-        # Get or create personal info
-        personal_info, created = PersonalInfo.objects.get_or_create(
-            user=request.user
-        )
-        kwargs['pk'] = personal_info.id
-        return super().partial_update(request, *args, **kwargs)
+    permission_classes = [IsAuthenticated]
+
+    def _get_instance(self, request):
+        personal_info, _ = PersonalInfo.objects.get_or_create(user=request.user)
+        return personal_info
+
+    def get(self, request):
+        serializer = PersonalInfoSerializer(self._get_instance(request))
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = PersonalInfoSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def put(self, request):
+        instance = self._get_instance(request)
+        serializer = PersonalInfoSerializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        instance = self._get_instance(request)
+        serializer = PersonalInfoSerializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response(serializer.data)
 
 
 class EducationViewSet(viewsets.ModelViewSet):
