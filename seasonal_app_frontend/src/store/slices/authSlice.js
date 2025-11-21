@@ -10,6 +10,7 @@ const initialState = {
   error: null,
   otpSent: false,
   isAuthenticated: false,
+  lastOtpCode: null,
 };
 
 const authSlice = createSlice({
@@ -20,16 +21,19 @@ const authSlice = createSlice({
     sendOTPRequest: (state) => {
       state.loading = true;
       state.error = null;
+      state.lastOtpCode = null;
     },
     sendOTPSuccess: (state, action) => {
       state.loading = false;
       state.otpSent = true;
       state.error = null;
+      state.lastOtpCode = action.payload?.otp || null;
     },
     sendOTPFailure: (state, action) => {
       state.loading = false;
       state.otpSent = false;
       state.error = action.payload;
+      state.lastOtpCode = null;
     },
 
     // Verify OTP Actions
@@ -44,6 +48,7 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.otpSent = false;
       state.error = null;
+      state.lastOtpCode = null;
       
       // Store tokens in localStorage
       if (action.payload.tokens) {
@@ -55,6 +60,7 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
       state.isAuthenticated = false;
+      state.lastOtpCode = null;
     },
 
     // Register Actions
@@ -68,6 +74,7 @@ const authSlice = createSlice({
       state.tokens = action.payload.tokens;
       state.isAuthenticated = true;
       state.error = null;
+      state.lastOtpCode = null;
       
       if (action.payload.tokens) {
         localStorage.setItem('access_token', action.payload.tokens.access);
@@ -77,6 +84,7 @@ const authSlice = createSlice({
     registerFailure: (state, action) => {
       state.loading = false;
       state.error = action.payload;
+      state.lastOtpCode = null;
     },
 
     // Login Actions
@@ -92,6 +100,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.otpSent = false;
       state.error = null;
+      state.lastOtpCode = null;
       
       // Clear tokens from localStorage
       localStorage.removeItem('access_token');

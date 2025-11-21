@@ -83,8 +83,11 @@ Register a new user.
 {
   "email": "user@example.com",
   "password": "securepassword123",
-  "password2": "securepassword123",
   "phone": "+971501234567",
+  "first_name": "Ahmed",
+  "father_name": "Mohammed",
+  "grand_name": "Abdullah",
+  "family_name": "Al-Rashid",
   "sign_up_source": "organic"
 }
 ```

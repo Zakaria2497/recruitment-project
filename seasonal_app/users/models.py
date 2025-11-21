@@ -47,6 +47,9 @@ class User(AbstractUser, IsActiveMixin):
         choices=SIGN_UP_SOURCE_CHOICES,
         default='organic'
     )
+    father_name = models.CharField(max_length=150, blank=True)
+    grand_name = models.CharField(max_length=150, blank=True)
+    family_name = models.CharField(max_length=150, blank=True)
 
     def save(self, *args, **kwargs):
         if self.username is None:

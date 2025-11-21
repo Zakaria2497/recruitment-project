@@ -18,27 +18,36 @@ class EmailAddressSerializer(serializers.ModelSerializer):
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """Serializer for user registration"""
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True, label='Confirm Password')
     phone = serializers.CharField(required=True)
+    first_name = serializers.CharField(required=True, max_length=150)
+    father_name = serializers.CharField(required=True, max_length=150)
+    grand_name = serializers.CharField(required=True, max_length=150)
+    family_name = serializers.CharField(required=True, max_length=150)
     
     class Meta:
         model = User
-        fields = ['email', 'password', 'password2', 'phone', 'sign_up_source']
+        fields = [
+            'email',
+            'password',
+            'phone',
+            'first_name',
+            'father_name',
+            'grand_name',
+            'family_name',
+            'sign_up_source',
+        ]
         extra_kwargs = {
             'email': {'required': True},
         }
     
-    def validate(self, attrs):
-        if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError({"password": "Password fields didn't match."})
-        return attrs
-    
     def create(self, validated_data):
-        validated_data.pop('password2')
         password = validated_data.pop('password')
-        # Ensure username is provided for AbstractUser create_user
         email = validated_data.get('email')
-        user = User.objects.create_user(username=email, email=email, **{k: v for k, v in validated_data.items() if k != 'email'})
+        user = User.objects.create_user(
+            username=email,
+            email=email,
+            **validated_data
+        )
         user.set_password(password)
         user.save()
         return user
@@ -51,7 +60,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'email', 'username', 'phone', 'confirmed', 'is_phone_verified',
+            'id', 'email', 'username', 'phone',
+            'first_name', 'father_name', 'grand_name', 'family_name',
+            'confirmed', 'is_phone_verified',
             'last_visited', 'sign_up_source', 'is_active', 'created_at', 'modified_at',
             'emails'
         ]
